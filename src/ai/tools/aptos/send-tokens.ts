@@ -61,7 +61,7 @@ async function getAccountBalance(address: string, network: keyof typeof NETWORK_
 
 // Transfer tool that only works with testnet
 export const transferAptos = tool({
-  description: 'Create a transaction for sending APT on Aptos Testnet using the user\'s keyless wallet. This prepares the transaction data that needs to be signed by the user\'s wallet.',
+  description: 'Create a transaction for sending APT on Aptos Testnet using the user\'s wallet. This prepares the transaction data that needs to be signed by the user\'s wallet.',
   parameters: z.object({
     recipient: z.string().describe('The recipient Aptos wallet address (0x format)'),
     amount: z.number().positive().describe('Amount in APT (must be positive)'),
@@ -128,14 +128,14 @@ export const transferAptos = tool({
         payload: transactionPayload,
         estimatedGasFee: estimatedGasFee,
         timestamp: new Date().toISOString(),
-        isKeylessWallet: true, // Indicates this is a keyless wallet transaction
+        isKeylessWallet: false, // This should be false to use regular wallet signing
       };
 
       console.log(`Transaction prepared successfully for ${network}:`, transactionData);
 
       return {
         transactionData,
-        message: `Ready to send ${amount} APT from your keyless wallet to ${recipient.slice(0, 6)}...${recipient.slice(-4)} on ${networkDisplayName}.`,
+        message: `Ready to send ${amount} APT from your wallet to ${recipient.slice(0, 6)}...${recipient.slice(-4)} on ${networkDisplayName}.`,
         amount,
         recipient,
         sender: senderAddress,
@@ -156,7 +156,7 @@ export const transferAptos = tool({
 
 // Testnet-specific transfer tool for backward compatibility
 export const transferAptosTestnet = tool({
-  description: 'Create a transaction for sending APT on Aptos Testnet using the user\'s keyless wallet. This prepares the transaction data that needs to be signed by the user\'s wallet.',
+  description: 'Create a transaction for sending APT on Aptos Testnet using the user\'s wallet. This prepares the transaction data that needs to be signed by the user\'s wallet.',
   parameters: z.object({
     recipient: z.string().describe('The recipient Aptos wallet address (0x format)'),
     amount: z.number().positive().describe('Amount in APT (must be positive)'),
@@ -220,14 +220,14 @@ export const transferAptosTestnet = tool({
         payload: transactionPayload,
         estimatedGasFee: estimatedGasFee,
         timestamp: new Date().toISOString(),
-        isKeylessWallet: true, // Indicates this is a keyless wallet transaction
+        isKeylessWallet: false, // This should be false to use regular wallet signing
       };
 
       console.log(`Transaction prepared successfully for ${network}:`, transactionData);
 
       return {
         transactionData,
-        message: `Ready to send ${amount} APT from your keyless wallet to ${recipient.slice(0, 6)}...${recipient.slice(-4)} on ${networkDisplayName}.`,
+        message: `Ready to send ${amount} APT from your wallet to ${recipient.slice(0, 6)}...${recipient.slice(-4)} on ${networkDisplayName}.`,
         amount,
         recipient,
         sender: senderAddress,
@@ -248,16 +248,16 @@ export const transferAptosTestnet = tool({
 
 // Enhanced balance checking tool - only testnet supported
 export const checkAptosBalance = tool({
-  description: 'Check APT balance for the user\'s keyless wallet on testnet. If no address is provided, it will use the user\'s connected keyless wallet address.',
+  description: 'Check APT balance for the user\'s wallet on testnet. If no address is provided, it will use the user\'s connected wallet address.',
   parameters: z.object({
-    address: z.string().optional().describe('Optional: The Aptos wallet address to check balance for. If not provided, uses the user\'s keyless wallet.'),
+    address: z.string().optional().describe('Optional: The Aptos wallet address to check balance for. If not provided, uses the user\'s wallet.'),
   }),
   execute: async ({ address }: { address?: string }) => {
     const network = 'testnet' as keyof typeof NETWORK_CONFIG;
     try {
       let targetAddress = address;
       
-      // If no address provided, get the user's keyless wallet address
+      // If no address provided, get the user's wallet address
       if (!targetAddress) {
         const session = await auth();
         if (!session?.user?.id) {

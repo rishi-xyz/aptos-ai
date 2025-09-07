@@ -7,7 +7,7 @@ export const APTOS_NETWORKS = {
   devnet: Network.DEVNET,
 } as const;
 
-export const DEFAULT_NETWORK = APTOS_NETWORKS.mainnet;
+export const DEFAULT_NETWORK = APTOS_NETWORKS.testnet;
 
 // Aptos wallet adapter configuration
 export const walletAdapterConfig = {
