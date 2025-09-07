@@ -72,10 +72,10 @@ export const GetBalanceAptos = ({
       </div>
 
       <div className="space-y-3">
-        <div className="flex items-center justify-between rounded-md bg-zinc-800 p-3">
-          <div>
+        <div className="flex items-start justify-between rounded-md bg-zinc-800 p-3">
+          <div className="flex-1 min-w-0 pr-2">
             <p className="text-zinc-500 text-xs">Address</p>
-            <p className="font-mono text-sm text-white break-words">
+            <p className="font-mono text-sm text-white break-all overflow-hidden">
               {address}
             </p>
           </div>
@@ -83,7 +83,7 @@ export const GetBalanceAptos = ({
             variant="ghost"
             size="sm"
             onClick={handleCopyAddress}
-            className="ml-2"
+            className="flex-shrink-0"
           >
             Copy
           </Button>
@@ -128,7 +128,7 @@ export const GetBalanceAptos = ({
             </div>
             <div>
               <p className="text-zinc-500 text-xs">Authentication Key</p>
-              <p className="font-mono text-xs text-white break-words">
+              <p className="font-mono text-xs text-white break-all overflow-hidden">
                 {accountInfo.authenticationKey}
               </p>
             </div>
