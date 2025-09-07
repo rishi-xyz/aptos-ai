@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import { tool } from 'ai';
 import { Aptos, AptosConfig, Network, AccountAddress } from '@aptos-labs/ts-sdk';
+import { getWalletByUserId } from '@/src/database/queries';
+import { auth } from '@/app/(auth)/auth';
 
 // Network configuration mapping - only testnet supported
 const NETWORK_CONFIG = {
@@ -59,7 +61,7 @@ async function getAccountBalance(address: string, network: keyof typeof NETWORK_
 
 // Transfer tool that only works with testnet
 export const transferAptos = tool({
-  description: 'Create a transaction for sending APT on Aptos Testnet. This prepares the transaction data that needs to be signed by the user\'s wallet. The sender address will be obtained from the connected wallet.',
+  description: 'Create a transaction for sending APT on Aptos Testnet using the user\'s keyless wallet. This prepares the transaction data that needs to be signed by the user\'s wallet.',
   parameters: z.object({
     recipient: z.string().describe('The recipient Aptos wallet address (0x format)'),
     amount: z.number().positive().describe('Amount in APT (must be positive)'),
@@ -71,6 +73,19 @@ export const transferAptos = tool({
     const network = 'testnet' as keyof typeof NETWORK_CONFIG;
     try {
       console.log(`Creating ${network} transaction: ${amount} APT to ${recipient}`);
+      
+      // Get user's wallet address
+      const session = await auth();
+      if (!session?.user?.id) {
+        return { error: 'User not authenticated. Please log in to send tokens.' };
+      }
+      
+      const wallet = await getWalletByUserId(session.user.id);
+      if (!wallet) {
+        return { error: 'No wallet found for user. Please create a wallet first.' };
+      }
+      
+      const senderAddress = wallet.address;
       
       // Validate recipient address
       if (!isValidAptosAddress(recipient)) {
@@ -103,6 +118,7 @@ export const transferAptos = tool({
       // Prepare transaction data for the UI
       const networkDisplayName = `Aptos ${network.charAt(0).toUpperCase() + network.slice(1)}`;
       const transactionData = {
+        sender: senderAddress,
         recipient: recipient,
         amount: amount,
         amountInOctas: amountInOctas,
@@ -112,17 +128,20 @@ export const transferAptos = tool({
         payload: transactionPayload,
         estimatedGasFee: estimatedGasFee,
         timestamp: new Date().toISOString(),
+        isKeylessWallet: true, // Indicates this is a keyless wallet transaction
       };
 
       console.log(`Transaction prepared successfully for ${network}:`, transactionData);
 
       return {
         transactionData,
-        message: `Ready to send ${amount} APT to ${recipient.slice(0, 6)}...${recipient.slice(-4)} on ${networkDisplayName}.`,
+        message: `Ready to send ${amount} APT from your keyless wallet to ${recipient.slice(0, 6)}...${recipient.slice(-4)} on ${networkDisplayName}.`,
         amount,
         recipient,
+        sender: senderAddress,
         network: networkDisplayName,
         currency: 'APT',
+        isKeylessWallet: true,
         success: true,
       };
     } catch (error: any) {
@@ -137,7 +156,7 @@ export const transferAptos = tool({
 
 // Testnet-specific transfer tool for backward compatibility
 export const transferAptosTestnet = tool({
-  description: 'Create a transaction for sending APT on Aptos Testnet. The sender address will be obtained from the connected wallet.',
+  description: 'Create a transaction for sending APT on Aptos Testnet using the user\'s keyless wallet. This prepares the transaction data that needs to be signed by the user\'s wallet.',
   parameters: z.object({
     recipient: z.string().describe('The recipient Aptos wallet address (0x format)'),
     amount: z.number().positive().describe('Amount in APT (must be positive)'),
@@ -146,6 +165,19 @@ export const transferAptosTestnet = tool({
     const network = 'testnet' as keyof typeof NETWORK_CONFIG;
     try {
       console.log(`Creating ${network} transaction: ${amount} APT to ${recipient}`);
+      
+      // Get user's wallet address
+      const session = await auth();
+      if (!session?.user?.id) {
+        return { error: 'User not authenticated. Please log in to send tokens.' };
+      }
+      
+      const wallet = await getWalletByUserId(session.user.id);
+      if (!wallet) {
+        return { error: 'No wallet found for user. Please create a wallet first.' };
+      }
+      
+      const senderAddress = wallet.address;
       
       // Validate recipient address
       if (!isValidAptosAddress(recipient)) {
@@ -178,6 +210,7 @@ export const transferAptosTestnet = tool({
       // Prepare transaction data for the UI
       const networkDisplayName = `Aptos ${network.charAt(0).toUpperCase() + network.slice(1)}`;
       const transactionData = {
+        sender: senderAddress,
         recipient: recipient,
         amount: amount,
         amountInOctas: amountInOctas,
@@ -187,17 +220,20 @@ export const transferAptosTestnet = tool({
         payload: transactionPayload,
         estimatedGasFee: estimatedGasFee,
         timestamp: new Date().toISOString(),
+        isKeylessWallet: true, // Indicates this is a keyless wallet transaction
       };
 
       console.log(`Transaction prepared successfully for ${network}:`, transactionData);
 
       return {
         transactionData,
-        message: `Ready to send ${amount} APT to ${recipient.slice(0, 6)}...${recipient.slice(-4)} on ${networkDisplayName}.`,
+        message: `Ready to send ${amount} APT from your keyless wallet to ${recipient.slice(0, 6)}...${recipient.slice(-4)} on ${networkDisplayName}.`,
         amount,
         recipient,
+        sender: senderAddress,
         network: networkDisplayName,
         currency: 'APT',
+        isKeylessWallet: true,
         success: true,
       };
     } catch (error: any) {
@@ -212,28 +248,46 @@ export const transferAptosTestnet = tool({
 
 // Enhanced balance checking tool - only testnet supported
 export const checkAptosBalance = tool({
-  description: 'Check APT balance for an Aptos wallet address on testnet.',
+  description: 'Check APT balance for the user\'s keyless wallet on testnet. If no address is provided, it will use the user\'s connected keyless wallet address.',
   parameters: z.object({
-    address: z.string().describe('The Aptos wallet address to check balance for'),
+    address: z.string().optional().describe('Optional: The Aptos wallet address to check balance for. If not provided, uses the user\'s keyless wallet.'),
   }),
-  execute: async ({ address }: { address: string }) => {
+  execute: async ({ address }: { address?: string }) => {
     const network = 'testnet' as keyof typeof NETWORK_CONFIG;
     try {
-      if (!isValidAptosAddress(address)) {
+      let targetAddress = address;
+      
+      // If no address provided, get the user's keyless wallet address
+      if (!targetAddress) {
+        const session = await auth();
+        if (!session?.user?.id) {
+          return { error: 'User not authenticated. Please log in to check your wallet balance.' };
+        }
+        
+        const wallet = await getWalletByUserId(session.user.id);
+        if (!wallet) {
+          return { error: 'No wallet found for user. Please create a wallet first.' };
+        }
+        
+        targetAddress = wallet.address;
+      }
+
+      if (!isValidAptosAddress(targetAddress)) {
         return { 
-          error: `Invalid address: ${address}. Please ensure it's a valid Aptos address starting with 0x.` 
+          error: `Invalid address: ${targetAddress}. Please ensure it's a valid Aptos address starting with 0x.` 
         };
       }
 
-      const balance = await getAccountBalance(address, network);
+      const balance = await getAccountBalance(targetAddress, network);
       const networkDisplayName = `Aptos ${network.charAt(0).toUpperCase() + network.slice(1)}`;
       
       return {
-        address: address,
+        address: targetAddress,
         balance: balance,
         network: networkDisplayName,
         networkType: network,
         currency: 'APT',
+        isUserWallet: !address, // Indicates if this is the user's own wallet
         message: `Balance: ${balance.toFixed(8)} APT on ${networkDisplayName}`,
         success: true,
       };

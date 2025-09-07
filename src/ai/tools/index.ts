@@ -1,15 +1,19 @@
-import { getAptosBalance, getAptosTestnetBalance } from './aptos/get-balance';
-import { transferAptos, transferAptosTestnet } from './aptos/send-tokens';
+import { getAptosBalance, getAptosTestnetBalance, getAptosDevnetBalance } from './aptos/get-balance';
+import { transferAptos, transferAptosTestnet, checkAptosBalance } from './aptos/send-tokens';
 
 export const AptosTools = { 
   getAptosBalance, 
-  getAptosTestnetBalance, 
+  getAptosTestnetBalance,
+  getAptosDevnetBalance,
   transferAptos,
-  transferAptosTestnet 
+  transferAptosTestnet,
+  checkAptosBalance
 };
 export const ALLTools = {
   getAptosBalance,
   getAptosTestnetBalance,
+  getAptosDevnetBalance,
   transferAptos,
   transferAptosTestnet,
+  checkAptosBalance,
 };

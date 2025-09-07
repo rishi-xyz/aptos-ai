@@ -10,6 +10,7 @@ interface GetBalanceAptosResult {
   balance: string;
   currency: string;
   network: string;
+  isUserWallet?: boolean;
   accountInfo: {
     sequenceNumber: string;
     authenticationKey: string;
@@ -45,7 +46,7 @@ export const GetBalanceAptos = ({
     );
   }
 
-  const { address, balance, currency, network, accountInfo } = RecievedResult;
+  const { address, balance, currency, network, isUserWallet, accountInfo } = RecievedResult;
 
   const handleCopyAddress = () => {
     navigator.clipboard.writeText(address).then(() => {
@@ -65,10 +66,19 @@ export const GetBalanceAptos = ({
         <h3 className="text-lg font-semibold text-fuchsia-400">
           {currency} Balance
         </h3>
-        <p className="text-zinc-400">Current balance for the connected wallet</p>
-        <p className="text-xs text-zinc-500">
-          {network}
+        <p className="text-zinc-400">
+          {isUserWallet ? 'Current balance for your keyless wallet' : 'Current balance for the specified wallet'}
         </p>
+        <div className="flex items-center gap-2 mt-1">
+          <p className="text-xs text-zinc-500">
+            {network}
+          </p>
+          {isUserWallet && (
+            <span className="px-2 py-0.5 rounded text-xs bg-blue-900/30 text-blue-300">
+              Keyless Wallet
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="space-y-3">

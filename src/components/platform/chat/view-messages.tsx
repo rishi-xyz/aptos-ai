@@ -53,7 +53,9 @@ export const ViewMessages = ({
                 return (
                   <div key={toolCallId}>
                     {(toolName === 'getAptosBalance' || 
-                      toolName === 'getAptosTestnetBalance') ? (
+                      toolName === 'getAptosTestnetBalance' ||
+                      toolName === 'getAptosDevnetBalance' ||
+                      toolName === 'checkAptosBalance') ? (
                       <GetBalanceAptos RecievedResult={result} />
                     ) : (toolName === 'transferAptos' || 
                           toolName === 'transferAptosTestnet') ? (
@@ -67,7 +69,9 @@ export const ViewMessages = ({
                 return (
                   <div key={toolCallId} className="skeleton">
                     {(toolName === 'getAptosBalance' || 
-                      toolName === 'getAptosTestnetBalance') ? (
+                      toolName === 'getAptosTestnetBalance' ||
+                      toolName === 'getAptosDevnetBalance' ||
+                      toolName === 'checkAptosBalance') ? (
                       <GetBalanceAptos />
                     ) : (toolName === 'transferAptos' ||
                         toolName === 'transferAptosTestnet') ? (
