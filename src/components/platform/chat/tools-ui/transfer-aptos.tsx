@@ -81,7 +81,6 @@ export const TransferAptos = ({
   }
 
   const { transactionData, message, amount, recipient, network, currency } = RecievedResult;
-  const isTestnet = true; // Only testnet is supported now
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
