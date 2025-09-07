@@ -1,60 +1,42 @@
 'use client';
 
-import { CreateAppKit } from '@reown/appkit';
-import { mainnet, monadTestnet, sepolia } from '@reown/appkit/networks';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React, { type ReactNode } from 'react';
-import { cookieToInitialState, WagmiProvider, type Config } from 'wagmi';
+import { AptosWalletAdapterProvider } from '@aptos-labs/wallet-adapter-react';
 
-import { wagmiAdapter, projectId } from '@/src/config';
-
-const queryClient = new QueryClient();
-
-if (!projectId) {
-  throw new Error('Project ID is not defined');
-}
+import { walletAdapterConfig } from '@/src/config';
 
 // Set up metadata
 export const metadata = {
   name: 'AptosAI',
   description: 'Talk to blockchain in Natural Language',
-  url: 'https://aptosai-eight.vercel.app', // origin must match your domain & subdomain
+  url: 'https://aptosai-eight.vercel.app',
   icons: [
     'https://drive.google.com/drive/folders/1-GKGLD2YQI2PlO5rtSwYTGPvegzubQWs?usp=sharing',
   ],
 };
 
-// Create the modal
-export const modal = {
-  adapters: [wagmiAdapter],
-  projectId,
-  networks: [mainnet, monadTestnet, sepolia],
-  defaultNetwork: mainnet,
-  metadata: metadata,
-  features: {
-    analytics: true, // Optional - defaults to your Cloud configuration
-  },
-  themeMode: 'dark',
-} as CreateAppKit;
-
 function ContextProvider({
   children,
-  cookies,
 }: {
   children: ReactNode;
-  cookies: string | null;
 }) {
-  const initialState = cookieToInitialState(
-    wagmiAdapter.wagmiConfig as Config,
-    cookies,
-  );
   return (
-    <WagmiProvider
-      config={wagmiAdapter.wagmiConfig as Config}
-      initialState={initialState}
+    <AptosWalletAdapterProvider
+      autoConnect={walletAdapterConfig.autoConnect}
+      dappConfig={{
+        network: walletAdapterConfig.network,
+        aptosApiKeys: {
+          mainnet: process.env.NEXT_PUBLIC_APTOS_API_KEY_MAINNET,
+          testnet: process.env.NEXT_PUBLIC_APTOS_API_KEY_TESTNET,
+          devnet: process.env.NEXT_PUBLIC_APTOS_API_KEY_DEVNET,
+        },
+      }}
+      onError={(error) => {
+        console.error('Wallet adapter error:', error);
+      }}
     >
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    </WagmiProvider>
+      {children}
+    </AptosWalletAdapterProvider>
   );
 }
 

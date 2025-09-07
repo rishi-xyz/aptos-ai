@@ -3,8 +3,6 @@ import { Manrope } from 'next/font/google';
 import './globals.css';
 import { Toaster } from '@/src/components/ui/sonner';
 import ContextProvider from '@/src/context';
-import { headers } from 'next/headers';
-
 const manrope = Manrope({
   subsets: ['latin'],
   variable: '--font-manrope',
@@ -21,15 +19,13 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const headersObj = await headers();
-  const cookies = headersObj.get('cookie');
   return (
     <html lang="en" suppressHydrationWarning>
       <body
         className={`${manrope.variable} antialiased`}
         suppressHydrationWarning
       >
-        <ContextProvider cookies={cookies}>
+        <ContextProvider>
           <Toaster position={'bottom-right'} />
           {children}
         </ContextProvider>

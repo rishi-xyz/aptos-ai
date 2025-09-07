@@ -7,9 +7,8 @@ import { ReactNode } from 'react';
 import { BotIcon, UserIcon } from 'lucide-react';
 import { Markdown } from './markdown';
 import { PreviewAttachment } from './preview-attachment';
-import { GetBalance } from './tools-ui/get-balance-ui';
-import { TransferSui } from './tools-ui/transfer-sui';
-import { TransferEVM } from './tools-ui/transfer-evm';
+import { GetBalanceAptos } from './tools-ui/get-balance-aptos';
+import { TransferAptos } from './tools-ui/transfer-aptos';
 
 export const ViewMessages = ({
   role,
@@ -53,16 +52,12 @@ export const ViewMessages = ({
 
                 return (
                   <div key={toolCallId}>
-                    {toolName === 'getbalance' ? (
-                      <GetBalance RecievedResult={result} />
-                    ) : toolName === 'transfersui' ? (
-                      <TransferSui RecievedResult={result} />
-                    ) : toolName === 'transferethereummainnet' ? (
-                      <TransferEVM RecievedResult={result} />
-                    ) : toolName === 'transferethereumsepolia' ? (
-                      <TransferEVM RecievedResult={result} />
-                    ) : toolName === 'transfermonadtestnet' ? (
-                      <TransferEVM RecievedResult={result} />
+                    {toolName === 'getAptosBalance' ? (
+                      <GetBalanceAptos RecievedResult={result} />
+                    ) : toolName === 'transferAptosMainnet' ? (
+                      <TransferAptos RecievedResult={result} />
+                    ) : toolName === 'transferAptosTestnet' ? (
+                      <TransferAptos RecievedResult={result} />
                     ) : (
                       <div>{JSON.stringify(result, null, 2)}</div>
                     )}
@@ -71,15 +66,12 @@ export const ViewMessages = ({
               } else {
                 return (
                   <div key={toolCallId} className="skeleton">
-                    {toolName === 'getbalance' ? (
-                      <GetBalance />
-                    ) : toolName === 'transfersui' ? (
-                      <TransferSui />
-                    ) : (
-                      (toolName === 'transferethereummainnet' ||
-                        toolName === 'transferethereumsepolia' ||
-                        toolName === 'transfermonadtestnet') && <TransferEVM />
-                    )}
+                    {toolName === 'getAptosBalance' ? (
+                      <GetBalanceAptos />
+                    ) : (toolName === 'transferAptosMainnet' ||
+                        toolName === 'transferAptosTestnet') ? (
+                      <TransferAptos />
+                    ) : null}
                   </div>
                 );
               }

@@ -32,8 +32,8 @@ export const useWalletStore = create<WalletState>()(
       (set, get) => ({
         // Initial state
         address: null,
-        chainId: 1, // Default to Ethereum mainnet
-        chainName: null,
+        chainId: 1, // Default to Aptos mainnet
+        chainName: 'Aptos',
         isConnected: false,
 
         // Actions
@@ -55,7 +55,7 @@ export const useWalletStore = create<WalletState>()(
             {
               address: null,
               chainId: 1,
-              chainName: null,
+              chainName: 'Aptos',
               isConnected: false,
             },
             false,
