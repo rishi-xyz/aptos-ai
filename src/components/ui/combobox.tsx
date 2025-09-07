@@ -24,26 +24,22 @@ const aptosNetworks = [
   {
     id: 1,
     value: 'mainnet',
-    label: 'Aptos Mainnet',
+    label: 'Aptos Mainnet (Coming Soon)',
     network: 'mainnet',
+    disabled: true,
   },
   {
     id: 2,
     value: 'testnet',
     label: 'Aptos Testnet',
     network: 'testnet',
-  },
-  {
-    id: 3,
-    value: 'devnet',
-    label: 'Aptos Devnet',
-    network: 'devnet',
+    disabled: false,
   },
 ];
 
 export function ComboboxDemo() {
   const [open, setOpen] = React.useState(false);
-  const [value, setValue] = React.useState<string>('mainnet');
+  const [value, setValue] = React.useState<string>('testnet');
   const [isLoading, setIsLoading] = React.useState(false);
 
   const { connected, account } = useWallet();
@@ -61,7 +57,7 @@ export function ComboboxDemo() {
 
   const selectHandler = async (currentValue: string) => {
     const selectedNetwork = aptosNetworks.find((network) => network.value === currentValue);
-    if (!selectedNetwork) return;
+    if (!selectedNetwork || selectedNetwork.disabled) return;
 
     // Don't switch if already on the selected network
     if (selectedNetwork.value === value) {
@@ -129,7 +125,10 @@ export function ComboboxDemo() {
                   key={network.value}
                   value={network.value}
                   onSelect={selectHandler}
-                  disabled={isLoading}
+                  disabled={isLoading || network.disabled}
+                  className={cn(
+                    network.disabled && 'opacity-50 cursor-not-allowed'
+                  )}
                 >
                   <span className="flex items-center gap-2">
                     {network.label}

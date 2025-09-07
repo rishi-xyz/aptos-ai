@@ -52,11 +52,11 @@ export const ViewMessages = ({
 
                 return (
                   <div key={toolCallId}>
-                    {toolName === 'getAptosBalance' ? (
+                    {(toolName === 'getAptosBalance' || 
+                      toolName === 'getAptosTestnetBalance') ? (
                       <GetBalanceAptos RecievedResult={result} />
-                    ) : toolName === 'transferAptosMainnet' ? (
-                      <TransferAptos RecievedResult={result} />
-                    ) : toolName === 'transferAptosTestnet' ? (
+                    ) : (toolName === 'transferAptos' || 
+                          toolName === 'transferAptosTestnet') ? (
                       <TransferAptos RecievedResult={result} />
                     ) : (
                       <div>{JSON.stringify(result, null, 2)}</div>
@@ -66,9 +66,10 @@ export const ViewMessages = ({
               } else {
                 return (
                   <div key={toolCallId} className="skeleton">
-                    {toolName === 'getAptosBalance' ? (
+                    {(toolName === 'getAptosBalance' || 
+                      toolName === 'getAptosTestnetBalance') ? (
                       <GetBalanceAptos />
-                    ) : (toolName === 'transferAptosMainnet' ||
+                    ) : (toolName === 'transferAptos' ||
                         toolName === 'transferAptosTestnet') ? (
                       <TransferAptos />
                     ) : null}

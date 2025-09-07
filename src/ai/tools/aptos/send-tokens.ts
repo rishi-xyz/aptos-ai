@@ -2,9 +2,16 @@ import { z } from 'zod';
 import { tool } from 'ai';
 import { Aptos, AptosConfig, Network, AccountAddress } from '@aptos-labs/ts-sdk';
 
-// Initialize Aptos client
-const aptosConfig = new AptosConfig({ network: Network.MAINNET });
-const aptos = new Aptos(aptosConfig);
+// Network configuration mapping - only testnet supported
+const NETWORK_CONFIG = {
+  testnet: Network.TESTNET,
+} as const;
+
+// Create Aptos client for specific network
+const getAptosClient = (network: keyof typeof NETWORK_CONFIG): Aptos => {
+  const config = new AptosConfig({ network: NETWORK_CONFIG[network] });
+  return new Aptos(config);
+};
 
 function isValidAptosAddress(address: string): boolean {
   try {
@@ -15,116 +22,227 @@ function isValidAptosAddress(address: string): boolean {
   }
 }
 
-export const transferAptosMainnet = tool({
-  description: 'Create a transaction for sending APT on Aptos Mainnet.',
-  parameters: z.object({
-    recipient: z.string().describe('The recipient Aptos wallet address'),
-    amount: z.number().positive().describe('Amount in APT (must be positive)'),
-    sender: z.string().describe('The sender Aptos wallet address'),
-  }),
-  execute: async ({ recipient, amount, sender }: { recipient: string; amount: number; sender: string }) => {
+async function getAccountBalance(address: string, network: keyof typeof NETWORK_CONFIG): Promise<number> {
+  try {
+    const aptos = getAptosClient(network);
+    
+    // First check if account exists
     try {
-      // Validate addresses
+      await aptos.getAccountInfo({ accountAddress: address });
+    } catch (error) {
+      console.warn(`Account ${address} might not exist on ${network}:`, error);
+      return 0;
+    }
+
+    const resources = await aptos.getAccountResources({
+      accountAddress: address
+    });
+    
+    const coinResource = resources.find(
+      (r) => r.type === '0x1::coin::CoinStore<0x1::aptos_coin::AptosCoin>'
+    );
+    
+    if (coinResource && coinResource.data) {
+      const balance = (coinResource.data as any).coin.value;
+      const balanceInApt = parseInt(balance) / 100000000; // Convert from octas to APT
+      console.log(`Balance for ${address} on ${network}: ${balanceInApt} APT`);
+      return balanceInApt;
+    }
+    
+    console.warn(`No APT coin store found for ${address} on ${network}`);
+    return 0;
+  } catch (error) {
+    console.error(`Failed to get balance for ${address} on ${network}:`, error);
+    throw new Error(`Unable to fetch balance from ${network}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+// Transfer tool that only works with testnet
+export const transferAptos = tool({
+  description: 'Create a transaction for sending APT on Aptos Testnet. This prepares the transaction data that needs to be signed by the user\'s wallet. The sender address will be obtained from the connected wallet.',
+  parameters: z.object({
+    recipient: z.string().describe('The recipient Aptos wallet address (0x format)'),
+    amount: z.number().positive().describe('Amount in APT (must be positive)'),
+  }),
+  execute: async ({ recipient, amount }: { 
+    recipient: string; 
+    amount: number; 
+  }) => {
+    const network = 'testnet' as keyof typeof NETWORK_CONFIG;
+    try {
+      console.log(`Creating ${network} transaction: ${amount} APT to ${recipient}`);
+      
+      // Validate recipient address
       if (!isValidAptosAddress(recipient)) {
-        return { error: `Invalid recipient address: ${recipient}` };
-      }
-      if (!isValidAptosAddress(sender)) {
-        return { error: `Invalid sender address: ${sender}` };
+        return { 
+          error: `Invalid recipient address: ${recipient}. Please ensure it's a valid Aptos address starting with 0x.` 
+        };
       }
       if (amount <= 0) {
-        return { error: 'Amount must be greater than 0' };
+        return { error: 'Amount must be greater than 0 APT.' };
       }
 
       // Convert APT to octas (1 APT = 10^8 octas)
       const amountInOctas = Math.floor(amount * 100000000);
+      
+      // Check if amount is too small (less than 1 octa)
+      if (amountInOctas === 0) {
+        return { error: 'Amount is too small. Minimum transfer is 0.00000001 APT.' };
+      }
 
-      // Create transaction
-      await aptos.transferCoinTransaction({
-        sender: sender,
-        recipient: recipient,
-        amount: amountInOctas,
-      });
+      // Gas fee estimation for display purposes
+      const estimatedGasFee = 0.0001; // Lower gas fees on testnet
 
-      // Get transaction data
+      // Build transaction payload
+      const transactionPayload = {
+        function: "0x1::coin::transfer",
+        type_arguments: ["0x1::aptos_coin::AptosCoin"],
+        arguments: [recipient, amountInOctas.toString()],
+      };
+
+      // Prepare transaction data for the UI
+      const networkDisplayName = `Aptos ${network.charAt(0).toUpperCase() + network.slice(1)}`;
       const transactionData = {
-        sender: sender,
         recipient: recipient,
         amount: amount,
         amountInOctas: amountInOctas,
-        network: 'Aptos Mainnet',
+        network: networkDisplayName,
+        networkType: network,
         currency: 'APT',
+        payload: transactionPayload,
+        estimatedGasFee: estimatedGasFee,
+        timestamp: new Date().toISOString(),
       };
+
+      console.log(`Transaction prepared successfully for ${network}:`, transactionData);
 
       return {
         transactionData,
-        message: `APT transfer transaction prepared. Send ${amount} APT to ${recipient} on Aptos Mainnet.`,
+        message: `Ready to send ${amount} APT to ${recipient.slice(0, 6)}...${recipient.slice(-4)} on ${networkDisplayName}.`,
         amount,
         recipient,
-        sender,
-        network: 'Aptos Mainnet',
+        network: networkDisplayName,
         currency: 'APT',
+        success: true,
       };
     } catch (error: any) {
-      return { error: `Failed to create Aptos transaction: ${error.message}` };
+      console.error(`Aptos ${network} transaction creation error:`, error);
+      return { 
+        error: `Failed to create Aptos ${network} transaction: ${error.message || 'Unknown error occurred'}`,
+        details: error.toString(),
+      };
     }
   },
 });
 
+// Testnet-specific transfer tool for backward compatibility
 export const transferAptosTestnet = tool({
-  description: 'Create a transaction for sending APT on Aptos Testnet.',
+  description: 'Create a transaction for sending APT on Aptos Testnet. The sender address will be obtained from the connected wallet.',
   parameters: z.object({
-    recipient: z.string().describe('The recipient Aptos wallet address'),
+    recipient: z.string().describe('The recipient Aptos wallet address (0x format)'),
     amount: z.number().positive().describe('Amount in APT (must be positive)'),
-    sender: z.string().describe('The sender Aptos wallet address'),
   }),
-  execute: async ({ recipient, amount, sender }: { recipient: string; amount: number; sender: string }) => {
+  execute: async ({ recipient, amount }: { recipient: string; amount: number }) => {
+    const network = 'testnet' as keyof typeof NETWORK_CONFIG;
     try {
-      // Validate addresses
+      console.log(`Creating ${network} transaction: ${amount} APT to ${recipient}`);
+      
+      // Validate recipient address
       if (!isValidAptosAddress(recipient)) {
-        return { error: `Invalid recipient address: ${recipient}` };
-      }
-      if (!isValidAptosAddress(sender)) {
-        return { error: `Invalid sender address: ${sender}` };
+        return { 
+          error: `Invalid recipient address: ${recipient}. Please ensure it's a valid Aptos address starting with 0x.` 
+        };
       }
       if (amount <= 0) {
-        return { error: 'Amount must be greater than 0' };
+        return { error: 'Amount must be greater than 0 APT.' };
       }
 
       // Convert APT to octas (1 APT = 10^8 octas)
       const amountInOctas = Math.floor(amount * 100000000);
+      
+      // Check if amount is too small (less than 1 octa)
+      if (amountInOctas === 0) {
+        return { error: 'Amount is too small. Minimum transfer is 0.00000001 APT.' };
+      }
 
-      // Create testnet client
-      const testnetConfig = new AptosConfig({ network: Network.TESTNET });
-      const testnetAptos = new Aptos(testnetConfig);
+      // Gas fee estimation for display purposes
+      const estimatedGasFee = 0.0001; // Lower gas fees on testnet
 
-      // Create transaction
-      await testnetAptos.transferCoinTransaction({
-        sender: sender,
-        recipient: recipient,
-        amount: amountInOctas,
-      });
+      // Build transaction payload
+      const transactionPayload = {
+        function: "0x1::coin::transfer",
+        type_arguments: ["0x1::aptos_coin::AptosCoin"],
+        arguments: [recipient, amountInOctas.toString()],
+      };
 
-      // Get transaction data
+      // Prepare transaction data for the UI
+      const networkDisplayName = `Aptos ${network.charAt(0).toUpperCase() + network.slice(1)}`;
       const transactionData = {
-        sender: sender,
         recipient: recipient,
         amount: amount,
         amountInOctas: amountInOctas,
-        network: 'Aptos Testnet',
+        network: networkDisplayName,
+        networkType: network,
         currency: 'APT',
+        payload: transactionPayload,
+        estimatedGasFee: estimatedGasFee,
+        timestamp: new Date().toISOString(),
       };
+
+      console.log(`Transaction prepared successfully for ${network}:`, transactionData);
 
       return {
         transactionData,
-        message: `APT transfer transaction prepared. Send ${amount} APT to ${recipient} on Aptos Testnet.`,
+        message: `Ready to send ${amount} APT to ${recipient.slice(0, 6)}...${recipient.slice(-4)} on ${networkDisplayName}.`,
         amount,
         recipient,
-        sender,
-        network: 'Aptos Testnet',
+        network: networkDisplayName,
         currency: 'APT',
+        success: true,
       };
     } catch (error: any) {
-      return { error: `Failed to create Aptos testnet transaction: ${error.message}` };
+      console.error(`Aptos ${network} transaction creation error:`, error);
+      return { 
+        error: `Failed to create Aptos ${network} transaction: ${error.message || 'Unknown error occurred'}`,
+        details: error.toString(),
+      };
+    }
+  },
+});
+
+// Enhanced balance checking tool - only testnet supported
+export const checkAptosBalance = tool({
+  description: 'Check APT balance for an Aptos wallet address on testnet.',
+  parameters: z.object({
+    address: z.string().describe('The Aptos wallet address to check balance for'),
+  }),
+  execute: async ({ address }: { address: string }) => {
+    const network = 'testnet' as keyof typeof NETWORK_CONFIG;
+    try {
+      if (!isValidAptosAddress(address)) {
+        return { 
+          error: `Invalid address: ${address}. Please ensure it's a valid Aptos address starting with 0x.` 
+        };
+      }
+
+      const balance = await getAccountBalance(address, network);
+      const networkDisplayName = `Aptos ${network.charAt(0).toUpperCase() + network.slice(1)}`;
+      
+      return {
+        address: address,
+        balance: balance,
+        network: networkDisplayName,
+        networkType: network,
+        currency: 'APT',
+        message: `Balance: ${balance.toFixed(8)} APT on ${networkDisplayName}`,
+        success: true,
+      };
+    } catch (error: any) {
+      console.error('Balance check error:', error);
+      return { 
+        error: `Failed to check balance on ${network}: ${error.message || 'Unknown error occurred'}`,
+        details: error.toString(),
+      };
     }
   },
 });
