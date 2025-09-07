@@ -6,6 +6,10 @@
 
 **Making Web3 accessible through natural language conversations**
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-aptos--ai--tau.vercel.app-purple?style=for-the-badge)](https://aptos-ai-tau.vercel.app/)
+[![Demo Video](https://img.shields.io/badge/Demo%20Video-Watch%20Now-red?style=for-the-badge)](https://drive.google.com/file/d/1c3Qx8Qn2T5rYq2s6hjIlejaw4-NPjobc/view)
+[![GitHub](https://img.shields.io/badge/GitHub-rishi--xyz%2Faptos--ai-black?style=for-the-badge&logo=github)](https://github.com/rishi-xyz/aptos-ai)
+
 [![Next.js](https://img.shields.io/badge/Next.js-15.3.2-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
 [![Aptos](https://img.shields.io/badge/Aptos-4.0.0-purple?style=for-the-badge&logo=aptos)](https://aptoslabs.com/)
@@ -20,6 +24,16 @@ AptosAI is an intelligent blockchain assistant that makes Web3 interactions acce
 ### 🎯 Mission
 
 To democratize blockchain technology by providing an intuitive, AI-powered interface that bridges the gap between complex blockchain operations and everyday users.
+
+## 🚀 Quick Start
+
+**Try AptosAI right now!**
+
+- 🌐 **[Live Demo](https://aptos-ai-tau.vercel.app/)** - Experience the full application
+- 📹 **[Demo Video](https://drive.google.com/file/d/1c3Qx8Qn2T5rYq2s6hjIlejaw4-NPjobc/view)** - Watch a complete walkthrough
+- 💻 **[GitHub Repository](https://github.com/rishi-xyz/aptos-ai)** - View source code and contribute
+
+*No installation required - just connect your Aptos wallet and start chatting!*
 
 ## ✨ Key Features
 
@@ -97,7 +111,7 @@ To democratize blockchain technology by providing an intuitive, AI-powered inter
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/your-username/aptos-ai.git
+   git clone https://github.com/rishi-xyz/aptos-ai.git
    cd aptos-ai
    ```
 
@@ -344,6 +358,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
+- **Live Demo**: [aptos-ai-tau.vercel.app](https://aptos-ai-tau.vercel.app/)
+- **Demo Video**: [Watch Demo](https://drive.google.com/file/d/1c3Qx8Qn2T5rYq2s6hjIlejaw4-NPjobc/view)
+- **GitHub**: [rishi-xyz/aptos-ai](https://github.com/rishi-xyz/aptos-ai)
 - **Documentation**: [docs.aptosai.com](https://docs.aptosai.com)
 - **Discord**: [Join our community](https://discord.gg/aptosai)
 - **Twitter**: [@AptosAI](https://twitter.com/aptosai)
@@ -351,7 +368,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🌟 Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=your-username/aptos-ai&type=Date)](https://star-history.com/#your-username/aptos-ai&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=rishi-xyz/aptos-ai&type=Date)](https://star-history.com/#rishi-xyz/aptos-ai&Date)
 
 ---
 
@@ -359,6 +376,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Built with ❤️ for the Aptos ecosystem**
 
-[Website](https://aptosai.com) • [Documentation](https://docs.aptosai.com) • [Discord](https://discord.gg/aptosai) • [Twitter](https://twitter.com/aptosai)
+[Live Demo](https://aptos-ai-tau.vercel.app/) • [GitHub](https://github.com/rishi-xyz/aptos-ai) • [Demo Video](https://drive.google.com/file/d/1c3Qx8Qn2T5rYq2s6hjIlejaw4-NPjobc/view) • [Documentation](https://docs.aptosai.com)
 
 </div>
