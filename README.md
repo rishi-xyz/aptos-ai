@@ -366,10 +366,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Twitter**: [@AptosAI](https://twitter.com/aptosai)
 - **Email**: support@aptosai.com
 
-## 🌟 Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=rishi-xyz/aptos-ai&type=Date)](https://star-history.com/#rishi-xyz/aptos-ai&Date)
-
 ---
 
 <div align="center">
