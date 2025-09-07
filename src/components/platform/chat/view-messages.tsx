@@ -9,6 +9,7 @@ import { Markdown } from './markdown';
 import { PreviewAttachment } from './preview-attachment';
 import { GetBalanceAptos } from './tools-ui/get-balance-aptos';
 import { TransferAptos } from './tools-ui/transfer-aptos';
+import { CreateAptosToken } from './tools-ui/create-token-ui';
 
 export const ViewMessages = ({
   role,
@@ -60,6 +61,8 @@ export const ViewMessages = ({
                     ) : (toolName === 'transferAptos' || 
                           toolName === 'transferAptosTestnet') ? (
                       <TransferAptos RecievedResult={result} />
+                    ) : (toolName === 'createAptosToken') ? (
+                      <CreateAptosToken RecievedResult={result} />
                     ) : (
                       <div>{JSON.stringify(result, null, 2)}</div>
                     )}
@@ -76,6 +79,8 @@ export const ViewMessages = ({
                     ) : (toolName === 'transferAptos' ||
                         toolName === 'transferAptosTestnet') ? (
                       <TransferAptos />
+                    ) : (toolName === 'createAptosToken') ? (
+                      <CreateAptosToken />
                     ) : null}
                   </div>
                 );
