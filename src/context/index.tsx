@@ -4,6 +4,7 @@ import React, { type ReactNode } from 'react';
 import { AptosWalletAdapterProvider } from '@aptos-labs/wallet-adapter-react';
 
 import { walletAdapterConfig } from '@/src/config';
+import { SessionProvider } from 'next-auth/react';
 
 // Set up metadata
 export const metadata = {
@@ -35,7 +36,9 @@ function ContextProvider({
         console.error('Wallet adapter error:', error);
       }}
     >
+      <SessionProvider>
       {children}
+      </SessionProvider>
     </AptosWalletAdapterProvider>
   );
 }

@@ -9,6 +9,8 @@ import { ViewMessages } from './view-messages';
 import { MultimodalInput } from './multimodalinput';
 import { ChatHeader } from './chat-header';
 import { useUserWalletData } from '@/src/store/wallet-store';
+import { WalletSetupPopup } from '../wallet-setup-popup';
+import { useWalletSetup } from '@/src/hooks/use-wallet-setup';
 
 export function Chat({
   id,
@@ -22,6 +24,12 @@ export function Chat({
   isReadonly: boolean;
 }) {
   const userWallet = useUserWalletData();
+  const {
+    showWalletPopup,
+    handleWalletCreated,
+    handleClosePopup,
+    isCreatingWallet,
+  } = useWalletSetup();
 
   // Memoize the body to prevent infinite re-renders
   const chatBody = useMemo(
@@ -50,51 +58,61 @@ export function Chat({
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden">
-      {/* Sticky header */}
-      <div className="bg-background sticky top-0 z-10 border-b border-zinc-800">
-        <ChatHeader selectedModelId={selectedModelId} isReadonly={isReadonly} />
-      </div>
+    <>
+      <div className="flex h-screen flex-col overflow-hidden">
+        {/* Sticky header */}
+        <div className="bg-background sticky top-0 z-10 border-b border-zinc-800">
+          <ChatHeader selectedModelId={selectedModelId} isReadonly={isReadonly} />
+        </div>
 
-      {/* Scrollable message area */}
-      <div
-        ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto px-2 py-4 md:px-4"
-      >
-        <div className="flex flex-col items-center gap-4">
-          {messages.length === 0 && <Overview />}
-          {messages.map((message) => (
-            <ViewMessages
-              key={message.id}
-              role={message.role}
-              content={message.content}
-              attachments={message.experimental_attachments}
-              toolInvocations={message.toolInvocations}
+        {/* Scrollable message area */}
+        <div
+          ref={messagesContainerRef}
+          className="flex-1 overflow-y-auto px-2 py-4 md:px-4"
+        >
+          <div className="flex flex-col items-center gap-4">
+            {messages.length === 0 && <Overview />}
+            {messages.map((message) => (
+              <ViewMessages
+                key={message.id}
+                role={message.role}
+                content={message.content}
+                attachments={message.experimental_attachments}
+                toolInvocations={message.toolInvocations}
+              />
+            ))}
+            <div
+              ref={messagesEndRef}
+              className="min-h-[24px] min-w-[24px] shrink-0"
             />
-          ))}
-          <div
-            ref={messagesEndRef}
-            className="min-h-[24px] min-w-[24px] shrink-0"
-          />
+          </div>
+        </div>
+
+        {/* Sticky input */}
+        <div className="bg-background sticky bottom-0 z-10 border-t border-zinc-800 px-4 py-2 md:px-0">
+          <form className="mx-auto flex w-full max-w-[500px] flex-row items-end gap-2">
+            <MultimodalInput
+              input={input}
+              setInput={setInput}
+              handleSubmit={handleSubmit}
+              isLoading={isLoading}
+              stop={stop}
+              attachments={attachments}
+              setAttachments={setAttachments}
+              messages={messages}
+              append={append}
+            />
+          </form>
         </div>
       </div>
 
-      {/* Sticky input */}
-      <div className="bg-background sticky bottom-0 z-10 border-t border-zinc-800 px-4 py-2 md:px-0">
-        <form className="mx-auto flex w-full max-w-[500px] flex-row items-end gap-2">
-          <MultimodalInput
-            input={input}
-            setInput={setInput}
-            handleSubmit={handleSubmit}
-            isLoading={isLoading}
-            stop={stop}
-            attachments={attachments}
-            setAttachments={setAttachments}
-            messages={messages}
-            append={append}
-          />
-        </form>
-      </div>
-    </div>
+      {/* Wallet Setup Popup */}
+      <WalletSetupPopup
+        isOpen={showWalletPopup}
+        onClose={handleClosePopup}
+        onWalletCreated={handleWalletCreated}
+        isCreatingWallet={isCreatingWallet}
+      />
+    </>
   );
 }

@@ -8,12 +8,14 @@ export interface WalletState {
   chainId: number;
   chainName: string | null;
   isConnected: boolean;
+  publicKey: string | null;
 
   // Actions
   setWalletData: (data: {
     address: string | null;
     chainId: number;
     chainName: string | null;
+    publicKey?: string | null;
   }) => void;
 
   disconnect: () => void;
@@ -35,6 +37,7 @@ export const useWalletStore = create<WalletState>()(
         chainId: 1, // Default to Aptos mainnet
         chainName: 'Aptos',
         isConnected: false,
+        publicKey: null,
 
         // Actions
         setWalletData: (data) => {
@@ -43,6 +46,7 @@ export const useWalletStore = create<WalletState>()(
               address: data.address,
               chainId: data.chainId,
               chainName: data.chainName,
+              publicKey: data.publicKey || null,
               isConnected: !!data.address,
             },
             false,
@@ -57,6 +61,7 @@ export const useWalletStore = create<WalletState>()(
               chainId: 1,
               chainName: 'Aptos',
               isConnected: false,
+              publicKey: null,
             },
             false,
             'disconnect',
@@ -81,6 +86,7 @@ export const useWalletStore = create<WalletState>()(
           chainId: state.chainId,
           chainName: state.chainName,
           isConnected: state.isConnected,
+          publicKey: state.publicKey,
         }),
       },
     ),

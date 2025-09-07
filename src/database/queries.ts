@@ -141,3 +141,49 @@ export async function renameChatTitleByChatId({
     throw error;
   }
 }
+
+export async function createWallet({
+  userId,
+  address,
+  publicKey,
+}: {
+  userId: string;
+  address: string;
+  publicKey: string;
+}) {
+  try {
+    return await client.wallet.create({
+      data: {
+        userId,
+        address,
+        publicKey,
+      },
+    });
+  } catch (error) {
+    console.error('Failed to create wallet in database', error);
+    throw error;
+  }
+}
+
+export async function getWalletByUserId(userId: string) {
+  try {
+    return await client.wallet.findUnique({
+      where: { userId },
+    });
+  } catch (error) {
+    console.error('Failed to get wallet by user id from database', error);
+    throw error;
+  }
+}
+
+export async function getUserWithWallet(userId: string) {
+  try {
+    return await client.user.findUnique({
+      where: { id: userId },
+      include: { wallet: true },
+    });
+  } catch (error) {
+    console.error('Failed to get user with wallet from database', error);
+    throw error;
+  }
+}

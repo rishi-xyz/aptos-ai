@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useWallet } from '@aptos-labs/wallet-adapter-react';
-import { useWalletStore } from '@/src/store/wallet-store';
+import { useWalletStore, useIsWalletConnected, useWalletAddress } from '@/src/store/wallet-store';
 import { Button } from '@/src/components/ui/button';
 import { toast } from 'sonner';
 
@@ -10,6 +10,10 @@ export const ConnectButton = () => {
   const [isConnecting, setIsConnecting] = useState(false);
   const setWalletData = useWalletStore((state) => state.setWalletData);
   const disconnectWallet = useWalletStore((state) => state.disconnect);
+  
+  // Get keyless wallet state from store
+  const isKeylessWalletConnected = useIsWalletConnected();
+  const keylessWalletAddress = useWalletAddress();
 
   // Sync Aptos wallet state with Zustand store
   useEffect(() => {
@@ -52,7 +56,14 @@ export const ConnectButton = () => {
 
   const handleDisconnect = async () => {
     try {
-      await disconnect();
+      // If Aptos wallet is connected, disconnect it
+      if (connected) {
+        await disconnect();
+      }
+      
+      // Always clear the wallet store (handles both Aptos and keyless wallets)
+      disconnectWallet();
+      
       toast.success('Wallet disconnected', {
         description: 'You have been disconnected from your wallet',
       });
@@ -64,8 +75,12 @@ export const ConnectButton = () => {
     }
   };
 
-  if (connected && account) {
-    const addressString = account.address.toString();
+  // Show wallet address if either Aptos wallet is connected OR keyless wallet is available
+  if ((connected && account) || (isKeylessWalletConnected && keylessWalletAddress)) {
+    const addressString = connected && account 
+      ? account.address.toString() 
+      : keylessWalletAddress!;
+    
     return (
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2">
